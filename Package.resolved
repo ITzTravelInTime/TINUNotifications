@@ -5,9 +5,9 @@
         "package": "TINURecovery",
         "repositoryURL": "https://github.com/ITzTravelInTime/TINURecovery",
         "state": {
-          "branch": "main",
-          "revision": "3f35d735d97532f15335b03303232a133aac4a12",
-          "version": null
+          "branch": null,
+          "revision": "94d7e7afd5299718f5f8a13350a7aaba5d97d72d",
+          "version": "1.0.1"
         }
       }
     ]
