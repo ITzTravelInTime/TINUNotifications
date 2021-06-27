@@ -12,7 +12,7 @@ public protocol TINUNotificationDescriptor{
 }
 
 /**Class used to manage user natifications, you can create an instance or subclass of it or use the provvided shared instance.*/
-public class TINUNotifications{
+open class TINUNotifications{
     
     ///Public initializyer, to let the library user create subclasses and instances of this class
     public init() {
@@ -90,7 +90,7 @@ public class TINUNotifications{
      - Returns: An 'NSUserNotification' Object, this is usefoul if a notification needs to be retired after being sent
      */
     
-    public func send<T: TINUNotificationDescriptor>(notification noti: T, allowSpam: Bool = false) -> NSUserNotification? {
+    open func send<T: TINUNotificationDescriptor>(notification noti: T, allowSpam: Bool = false) -> NSUserNotification? {
         
         if TINURecovery.isOn{
             Swift.print("Recovery mode is active, notification sending is disabled")
@@ -144,7 +144,7 @@ public class TINUNotifications{
         
      - Parameter allowSpam: Determinates if this notification can be spammed or not.
      */
-    public func justSend<T: TINUNotificationDescriptor>(notification noti: T, allowSpam: Bool = false){
+    open func justSend<T: TINUNotificationDescriptor>(notification noti: T, allowSpam: Bool = false){
         let _ = send(notification: noti, allowSpam: allowSpam)
     }
     
