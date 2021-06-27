@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "TINURecovery",
+        "repositoryURL": "https://github.com/ITzTravelInTime/TINURecovery",
+        "state": {
+          "branch": "main",
+          "revision": "3f35d735d97532f15335b03303232a133aac4a12",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
