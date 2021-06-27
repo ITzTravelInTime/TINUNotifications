@@ -11,13 +11,14 @@ public protocol TINUNotificationDescriptor{
     var scheduledTime: Date? { get }
 }
 
-/**Class used to manage natifications, you can create an instance of it or use the provvided shared instance.*/
-public final class TINUNotifications{
+/**Class used to manage user natifications, you can create an instance or subclass of it or use the provvided shared instance.*/
+public class TINUNotifications{
     
-    public init(counter: UInt64 = 0, prevIDs: [String : (Date, String)] = [:], timer: Timer? = nil) {
-        self.counter = counter
-        self.prevIDs = prevIDs
-        self.timer = timer
+    ///Public initializyer, to let the library user create subclasses and instances of this class
+    public init() {
+        self.counter = 0
+        self.prevIDs = [:]
+        self.timer = nil
     }
     
     /**Provvided shared instance of this class for general purpose usage, if you want to clean the notifications storage just re-initialize this.*/
