@@ -14,16 +14,30 @@ public protocol TINUNotificationDescriptor{
 /**Class used to manage natifications, you can create an instance of it or use the provvided shared instance.*/
 public final class TINUNotifications{
     
+    internal init(counter: UInt64 = 0, prevIDs: [String : (Date, String)] = [:], timer: Timer? = nil) {
+        self.counter = counter
+        self.prevIDs = prevIDs
+        self.timer = timer
+    }
+    
     /**Provvided shared instance of this class for general purpose usage, if you want to clean the notifications storage just re-initialize this.*/
     public static var shared = TINUNotifications()
     
-    private var counter: UInt64 = 0
     private let idPrefix: String = Bundle.main.bundleIdentifier! + "."
+    
+    private var counter: UInt64 = 0
     private var prevIDs: [String: (Date, String)] = [:]
     private var timer: Timer!
     
     ///Contains all the necessary information needed to create a basic notification
     public struct BaseDescriptor: TINUNotificationDescriptor, Equatable, Codable{
+        
+        public init(id: String, title: String, description: String, scheduledTime: Date? = nil) {
+            self.id = id
+            self.title = title
+            self.description = description
+            self.scheduledTime = scheduledTime
+        }
         
         ///The Unique Identifier of the notification, which used to track it
         public var id: String
@@ -40,6 +54,15 @@ public final class TINUNotifications{
     
     ///Contains all the necessary information needed to create a basic notification
     public struct AdvancedDescriptor: TINUNotificationDescriptor{
+        
+        public init(id: String, title: String, description: String, scheduledTime: Date? = nil, image: NSImage? = nil) {
+            self.id = id
+            self.title = title
+            self.description = description
+            self.scheduledTime = scheduledTime
+            self.image = image
+        }
+        
         ///The Unique Identifier of the notification, which used to track it
         public var id: String
         
