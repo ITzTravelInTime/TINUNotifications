@@ -24,7 +24,7 @@ public class TINUNotifications{
     /**Provvided shared instance of this class for general purpose usage, if you want to clean the notifications storage just re-initialize this.*/
     public static var shared = TINUNotifications()
     
-    private let idPrefix: String = Bundle.main.bundleIdentifier! + "."
+    private let idPrefix: String = (Bundle.main.bundleIdentifier ?? "") + "."
     
     private var counter: UInt64 = 0
     private var prevIDs: [String: (Date, String)] = [:]
