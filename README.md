@@ -5,7 +5,8 @@ Library with the Basic Notifications delivery and management system used by TINU
 
 Creates simple notitifications by using a notification description object and then sends it to the user, example usage:
 
-'''
+```swift
+
 import AppKit
 import TINUNotifications
 
@@ -19,7 +20,7 @@ func deliverNotification(){
 
 deliverNotification()
 
-'''
+```
 
 # Who should use this Library?
 
