@@ -14,7 +14,7 @@ public protocol TINUNotificationDescriptor{
 /**Class used to manage natifications, you can create an instance of it or use the provvided shared instance.*/
 public final class TINUNotifications{
     
-    internal init(counter: UInt64 = 0, prevIDs: [String : (Date, String)] = [:], timer: Timer? = nil) {
+    public init(counter: UInt64 = 0, prevIDs: [String : (Date, String)] = [:], timer: Timer? = nil) {
         self.counter = counter
         self.prevIDs = prevIDs
         self.timer = timer
