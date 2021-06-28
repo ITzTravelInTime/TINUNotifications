@@ -11,7 +11,7 @@ import AppKit
 import TINUNotifications
 
 func deliverNotification(){
-    guard let notification = TINUNotifications.shared.send(notification: TINUNotifications.BaseDescriptor(id: "myFancyNotificationID", title: "Example notification", description: "This is an example notification, you can ignore it and go on with your work!"), allowSpam: true) else { return }
+    guard let notification = TINUNotifications.BaseDescriptor(id: "myFancyNotificationID", title: "Example notification", description: "This is an example notification, you can ignore it and go on with your work!").send() else { return }
     
     sleep(1)
     
