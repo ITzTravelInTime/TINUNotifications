@@ -9,6 +9,29 @@ public protocol TINUNotificationDescriptor{
     var title: String {get}
     var description: String {get}
     var scheduledTime: Date? { get }
+    var allowsSpam: Bool { get }
+    func send() -> NSUserNotification?
+    func justSend()
+}
+
+extension TINUNotificationDescriptor{
+    /**
+     Creates and sends new 'NSUserNotitfication' from the current instance and then returns it
+     
+     DO NOT OVERRIDE THIS FUNCTION
+     */
+    public func send() -> NSUserNotification?{
+        return TINUNotifications.shared.send(notification: self)
+    }
+    
+    /**
+     Creates and sends new 'NSUserNotitfication' from the current instance
+     
+     DO NOT OVERRIDE THIS FUNCTION
+     */
+    public func justSend() {
+        return TINUNotifications.shared.justSend(notification: self)
+    }
 }
 
 /**Class used to manage user natifications, you can create an instance or subclass of it or use the provvided shared instance.*/
@@ -24,7 +47,8 @@ open class TINUNotifications{
     /**Provvided shared instance of this class for general purpose usage, if you want to clean the notifications storage just re-initialize this.*/
     public static var shared = TINUNotifications()
     
-    private let idPrefix: String = (Bundle.main.bundleIdentifier ?? "") + "."
+    //Used to make notifications app-specific/program-specific
+    private let idPrefix: String = (Bundle.main.bundleIdentifier ?? "TINUNotifications") + "."
     
     private var counter: UInt64 = 0
     private var prevIDs: [String: (Date, String)] = [:]
@@ -33,10 +57,11 @@ open class TINUNotifications{
     ///Contains all the necessary information needed to create a basic notification
     public struct BaseDescriptor: TINUNotificationDescriptor, Equatable, Codable{
         
-        public init(id: String, title: String, description: String, scheduledTime: Date? = nil) {
+        public init(id: String, title: String, description: String, allowsSpam: Bool = false, scheduledTime: Date? = nil) {
             self.id = id
             self.title = title
             self.description = description
+            self.allowsSpam = allowsSpam
             self.scheduledTime = scheduledTime
         }
         
@@ -49,6 +74,9 @@ open class TINUNotifications{
         ///The 'informativeText' of the notification which is the text containing more details
         public var description: String
         
+        ///Determinates if the system to avoid notification spamming should be used or not
+        public var allowsSpam: Bool = false
+        
         ///The exact moment in  which the notification should be delivered
         public var scheduledTime: Date?
     }
@@ -56,10 +84,11 @@ open class TINUNotifications{
     ///Contains all the necessary information needed to create a basic notification
     public struct AdvancedDescriptor: TINUNotificationDescriptor{
         
-        public init(id: String, title: String, description: String, scheduledTime: Date? = nil, image: NSImage? = nil) {
+        public init(id: String, title: String, description: String, allowsSpam: Bool = false, scheduledTime: Date? = nil, image: NSImage? = nil) {
             self.id = id
             self.title = title
             self.description = description
+            self.allowsSpam = allowsSpam
             self.scheduledTime = scheduledTime
             self.image = image
         }
@@ -73,6 +102,9 @@ open class TINUNotifications{
         ///The 'informativeText' of the notification which is the text containing more details
         public var description: String
         
+        ///Determinates if the system to avoid notification spamming should be used or not
+        public var allowsSpam: Bool = false
+        
         ///The exact moment in  which the notification should be delivered
         public var scheduledTime: Date?
         
@@ -83,14 +115,12 @@ open class TINUNotifications{
     /**
      Creates and sends new 'NSUserNotitfication'.
 
-     - Parameter description: The required information about the notification to create.
-        
-     - Parameter allowSpam: Determinates if this notification can be spammed or not.
+     - Parameter noti: The required information about the notification to create.
      
      - Returns: An 'NSUserNotification' Object, this is usefoul if a notification needs to be retired after being sent
      */
     
-    open func send<T: TINUNotificationDescriptor>(notification noti: T, allowSpam: Bool = false) -> NSUserNotification? {
+    open func send<T: TINUNotificationDescriptor>(notification noti: T) -> NSUserNotification? {
         
         if TINURecovery.isOn{
             Swift.print("Recovery mode is active, notification sending is disabled")
@@ -100,7 +130,7 @@ open class TINUNotifications{
         let notification = NSUserNotification()
         
         if !prevIDs.keys.contains(noti.id){
-            notification.identifier = idPrefix + noti.id + (allowSpam ? String(counter) : "")
+            notification.identifier = idPrefix + noti.id + (noti.allowsSpam ? String(counter) : "")
             
             prevIDs[noti.id] = (Date(), notification.identifier!)
             
@@ -140,12 +170,10 @@ open class TINUNotifications{
     /**
      Creates and sends new 'NSUserNotitfication', without return it.
 
-     - Parameter description: The required information about the notification to create.
-        
-     - Parameter allowSpam: Determinates if this notification can be spammed or not.
+     - Parameter noti: The required information about the notification to create.
      */
-    open func justSend<T: TINUNotificationDescriptor>(notification noti: T, allowSpam: Bool = false){
-        let _ = send(notification: noti, allowSpam: allowSpam)
+    open func justSend<T: TINUNotificationDescriptor>(notification noti: T){
+        let _ = send(notification: noti)
     }
     
     /**This timer event handling function is used to prevent having unnecessary long lists of notifications*/
