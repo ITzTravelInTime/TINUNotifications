@@ -122,7 +122,7 @@ open class TINUNotifications{
     
     open func send<T: TINUNotificationDescriptor>(notification noti: T) -> NSUserNotification? {
         
-        if TINURecovery.isOn{
+        if Recovery.status{
             Swift.print("Recovery mode is active, notification sending is disabled")
             return nil
         }
