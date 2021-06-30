@@ -44,7 +44,7 @@ public struct Alert: Messange{
             }
         }
         
-        init(from: NSAlert.Style) {
+        public init(from: NSAlert.Style) {
             switch from {
             case .warning:
                 self = .warning
