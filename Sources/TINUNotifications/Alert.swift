@@ -1,0 +1,216 @@
+//
+//  File.swift
+//  
+//
+//  Created by Pietro Caruso on 30/06/21.
+//
+
+import Foundation
+import TINURecovery
+
+#if os(macOS)
+import AppKit
+
+///This objects represents an alert messange displayed to the user
+public struct Alert: Messange{
+    
+    ///This structure is used to represent the alert's buttons
+    public struct Button: Equatable, Codable {
+        ///The text for the alert's button
+        public var text: String
+        ///The key that should be pressed on the keyboard to trigger the click of this button
+        public var keyEquivalent: String?
+    }
+    
+    ///This enum is used as a `Codable` version of `NSAlert.Style`
+    public enum Style : UInt8, Codable, Equatable, CaseIterable, RawRepresentable {
+        ///Style of alert with the warning triangle
+        case warning = 0
+        ///Normal stlye of alert
+        case informational = 1
+        ///Style of alert with the red stop sign
+        case critical = 2
+        
+        ///Returns the matching `NSAlert.Style` from this instance
+        func convertToAlertStyle() -> NSAlert.Style{
+            //we could have used raw values here, but this is more safe because wraw values could be changed breaking the code
+            switch self {
+            case .warning:
+                return NSAlert.Style.warning
+            case .critical:
+                return NSAlert.Style.critical
+            default:
+                return NSAlert.Style.informational
+            }
+        }
+    }
+    
+    ///This is the window to be used when  the funtion `justSend` with a completition handler specified is called and the property `displayOnWindow` is true
+    public static var window: NSWindow? = nil
+    
+    ///The title for for the alert
+    public var message: String
+    ///The text description of the alert
+    public var description: String
+    ///The style of the alert, see `Alert.Style` for more info
+    public var style: Style = .informational
+    ///The data that represents the icon of the alert
+    private var imageData: Data? = nil
+    ///The buttons for the alert, see `Alert.Button` for more info
+    public var buttons: [Button] = []
+    ///This property determinates if the alert should be displayed as a sheet on the window specified in the `Alert.window` static property
+    public var displayOnWindow: Bool = false
+    
+    private init(message: String, description: String, style: Alert.Style = .informational, imageData: Data? = nil, buttons: [Alert.Button] = [], displayOnWindow: Bool = false) {
+        self.message = message
+        self.description = description
+        self.style = style
+        self.imageData = imageData
+        self.buttons = buttons
+        self.displayOnWindow = displayOnWindow
+    }
+    
+    public init(message: String, description: String, style: Alert.Style = .informational, icon: Image? = nil, buttons: [Alert.Button] = [], displayOnWindow: Bool = false) {
+        self.message = message
+        self.description = description
+        self.style = style
+        self.icon = icon
+        self.buttons = buttons
+        self.displayOnWindow = displayOnWindow
+    }
+    
+    ///Creates anoter instance of `Alert` identical to the current one.
+    public func copy() -> Alert {
+        return Alert(message: message, description: description, style: style, imageData: imageData, buttons: buttons, displayOnWindow: true)
+    }
+    
+    ///The icon to be used on the alert messange, if nil is specified, the app's icon will be used
+    public var icon: Image?{
+        get{
+            guard let dat = imageData else { return nil }
+            return Image(data: dat)
+        }
+        set{
+            imageData = newValue?.tiffRepresentation
+        }
+    }
+    
+    ///Creates an `NSAlert` from this `Alert` istance
+    public func create() -> NSAlert {
+        let dialog = NSAlert()
+        dialog.messageText = message
+        dialog.informativeText = description
+        dialog.alertStyle = style.convertToAlertStyle()
+        dialog.icon = icon
+        
+        for i in 0..<buttons.count  {
+            dialog.addButton(withTitle: buttons[i].text)
+            guard let eq = buttons[i].keyEquivalent else {continue}
+            dialog.buttons[i].keyEquivalent = eq
+        }
+        
+        return dialog
+    }
+    
+    ///Displays an `NSAlert` created from the current instance as modal and then return the `NSApplication.ModalResponse`
+    public func send() -> NSApplication.ModalResponse {
+        return create().runModal()
+    }
+    
+    /**
+     Creates an `NSAlert` from the current instance and dislays it as sheet on the windows specified in `Alert.window` if possible.
+        
+        - Parameter completionHandler: The handler that takes care of what happens after the user click on one of the alert's buttons.
+     
+     */
+    public func justSendSheet(completionHandler handler: ((NSApplication.ModalResponse) -> Void)? = nil){
+        DispatchQueue.main.async {
+            if let win = Alert.window, self.displayOnWindow{
+                create().beginSheetModal(for: win, completionHandler: { res in
+                    guard let han = handler else { return }
+                    han(res)
+                })
+            }else{
+                guard let han = handler else { let _ = send(); return }
+                han(send())
+            }
+        }
+    }
+    
+    /**
+     Creates an `NSAlert` from the current instance and dislays it as modal
+     */
+    public func justSend() {
+        justSendSheet()
+    }
+    
+    ///Creates a new instance of `Alert` equal to the current one except for the value of `style` which is now setted to `Alert.Style.warning`
+    public func warning() -> Alert{
+        var mycopy = copy()
+        mycopy.style = .warning
+        return mycopy
+    }
+    
+    ///Creates a new instance of `Alert` equal to the current one except for the value of `style` which is now setted to `Alert.Style.critical`
+    public func critical() -> Alert{
+        var mycopy = copy()
+        mycopy.style = .critical
+        return mycopy
+    }
+    
+    ///Creates a new instance of `Alert` equal to the current but adds 2 buttons, one named "Yes" and the other named "No".
+    public func yesNo() -> Alert{
+        return addingButton(title: "Yes", keyEquivalent: "\r").addingButton(title: "No")
+    }
+    
+    ///Creates a new instance of `Alert` equal to the current but adds 2 buttons, one named "Ok" and the other named "Cancel".
+    public func okCancel() -> Alert{
+        return addingButton(title: "Ok", keyEquivalent: "\r").addingButton(title: "Cancel")
+    }
+    
+    ///Sets a new icon for the alert
+    public mutating func add(icon: NSImage?){
+        self.icon = icon
+    }
+    
+    ///Adds a new button the alert
+    public mutating func add(button: Button){
+        buttons.append(button)
+    }
+    
+    ///Adds a new button to the alter creating it from a specified text and keyEquivalent
+    public mutating func addButton(title: String, keyEquivalent: String? = nil){
+        add(button: Button(text: title, keyEquivalent: keyEquivalent))
+    }
+    
+    ///Creates a new instance of `Alert` equal to the current one but using the specified icon
+    public func adding(icon: NSImage?) -> Alert{
+        var mycopy = copy()
+        mycopy.add(icon: icon)
+        return mycopy
+    }
+    
+    ///Creates a new instance of `Alert` equal to the current one but with the cpefied button added to it
+    public func adding(button: Button) -> Alert{
+        var mycopy = copy()
+        mycopy.add(button: button)
+        return mycopy
+    }
+    
+    ///Creates a new instance of `Alert` equal to the current one but with the cpefied button (created using a name and a key equivalent)  added to it
+    public func addingButton(title: String, keyEquivalent: String? = nil) -> Alert{
+        var mycopy = copy()
+        mycopy.addButton(title: title, keyEquivalent: keyEquivalent)
+        return mycopy
+    }
+    
+    ///Creates a new instance of `Alert` equal to the current one but that displays as a sheet on a windows if it's possible
+    public func displayingOnWindow() -> Alert{
+        var mycopy = copy()
+        mycopy.displayOnWindow = true
+        return mycopy
+    }
+    
+}
+
+#endif
