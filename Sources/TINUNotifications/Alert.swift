@@ -20,6 +20,11 @@ public struct Alert: Messange{
         public var text: String
         ///The key that should be pressed on the keyboard to trigger the click of this button
         public var keyEquivalent: String?
+        
+        public init(text: String, keyEquivalent: String? = nil){
+            self.text = text
+            self.keyEquivalent = keyEquivalent
+        }
     }
     
     ///This enum is used as a `Codable` version of `NSAlert.Style`
