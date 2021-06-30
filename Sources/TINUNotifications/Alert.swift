@@ -43,6 +43,20 @@ public struct Alert: Messange{
                 return NSAlert.Style.informational
             }
         }
+        
+        init(from: NSAlert.Style) {
+            switch from {
+            case .warning:
+                self = .warning
+                break
+            case .critical:
+                self = .critical
+                break
+            default:
+                self = .informational
+                break
+            }
+        }
     }
     
     ///This is the window to be used when  the funtion `justSend` with a completition handler specified is called and the property `displayOnWindow` is true
@@ -74,6 +88,15 @@ public struct Alert: Messange{
         self.message = message
         self.description = description
         self.style = style
+        self.icon = icon
+        self.buttons = buttons
+        self.displayOnWindow = displayOnWindow
+    }
+    
+    public init(message: String, description: String, style: NSAlert.Style = .informational, icon: Image? = nil, buttons: [Alert.Button] = [], displayOnWindow: Bool = false) {
+        self.message = message
+        self.description = description
+        self.style = .init(from: style)
         self.icon = icon
         self.buttons = buttons
         self.displayOnWindow = displayOnWindow
