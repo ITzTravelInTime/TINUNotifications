@@ -9,7 +9,7 @@ import Foundation
 import TINURecovery
 
 ///Basic interface for notifications and alerts used by this library, it could be also used for other objects that presents similar behaviour
-public protocol Messange: Codable, Copying {
+public protocol Messange: Codable, Equatable, Copying {
     associatedtype T
     associatedtype G
     var message: String { get }

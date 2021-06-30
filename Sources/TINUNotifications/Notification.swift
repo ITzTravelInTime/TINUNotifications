@@ -6,6 +6,7 @@ import TINURecovery
 
 ///Class that is used to create and send notifications
 open class Notification: Messange{
+    
     private init(id: String, message: String, description: String, imageData: Data? = nil, scheduledTime: Date? = nil, allowsSpam: Bool = false) {
         self.id = id
         self.message = message
@@ -27,6 +28,17 @@ open class Notification: Messange{
     ///Creates a copy of this notification as a new instance
     public func copy() -> Self {
         return Notification(id: id, message: message, description: description, imageData: imageData, scheduledTime: scheduledTime, allowsSpam: allowsSpam) as! Self
+    }
+    
+    public static func == (l: Notification, r: Notification) -> Bool {
+        var res = l.message == r.message
+        res = res && l.id == r.id
+        res = res && l.description == r.description
+        res = res && l.imageData == r.imageData
+        res = res && l.scheduledTime == r.scheduledTime
+        res = res && l.allowsSpam == r.allowsSpam
+        
+        return res
     }
     
     ///Used to make notifications app-specific/program-specific
