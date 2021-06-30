@@ -93,14 +93,15 @@ public struct Alert: Messange{
         self.displayOnWindow = displayOnWindow
     }
     
-    public init(message: String, description: String, style: NSAlert.Style = .informational, icon: Image? = nil, buttons: [Alert.Button] = [], displayOnWindow: Bool = false) {
-        self.message = message
+    /*
+    public init(title: String, description: String, style: NSAlert.Style = .informational, icon: Image? = nil, buttons: [Alert.Button] = [], displayOnWindow: Bool = false) {
+        self.message = title
         self.description = description
         self.style = .init(from: style)
         self.icon = icon
         self.buttons = buttons
         self.displayOnWindow = displayOnWindow
-    }
+    }*/
     
     ///Creates anoter instance of `Alert` identical to the current one.
     public func copy() -> Alert {
