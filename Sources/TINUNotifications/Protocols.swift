@@ -17,5 +17,12 @@ public protocol Messange: Codable, Equatable, Copying {
     var icon: Image? { get }
     func create() -> G
     func send() -> T
-    func justSend()
+    //func justSend()
+}
+
+public extension Messange{
+    ///Default implementation for `justSend()`, this will just send the `Messange` object without any returns
+    func justSend() {
+        let _ = send()
+    }
 }

@@ -7,14 +7,6 @@
 
 import Foundation
 
-
-public extension Messange{
-    ///Default implementation for `justSend()`, this will just send the `Messange` object witouth any returns
-    func justSend() {
-        let _ = send()
-    }
-}
-
 #if os(macOS)
 
 import AppKit
