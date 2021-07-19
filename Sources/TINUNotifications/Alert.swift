@@ -187,14 +187,20 @@ public struct Alert: Messange{
         return mycopy
     }
     
+    public static var localisedYesButoonTitle: String = "Yes"
+    public static var localisedNoButoonTitle: String = "No"
+    
     ///Creates a new instance of `Alert` equal to the current but adds 2 buttons, one named "Yes" and the other named "No".
     public func yesNo() -> Alert{
-        return addingButton(title: "Yes", keyEquivalent: "\r").addingButton(title: "No")
+        return addingButton(title: Alert.localisedYesButoonTitle, keyEquivalent: "\r").addingButton(title: Alert.localisedNoButoonTitle)
     }
+    
+    public static var localisedOkButoonTitle: String = "Ok"
+    public static var localisedCancelButoonTitle: String = "Cancel"
     
     ///Creates a new instance of `Alert` equal to the current but adds 2 buttons, one named "Ok" and the other named "Cancel".
     public func okCancel() -> Alert{
-        return addingButton(title: "Ok", keyEquivalent: "\r").addingButton(title: "Cancel")
+        return addingButton(title: Alert.localisedOkButoonTitle, keyEquivalent: "\r").addingButton(title: Alert.localisedCancelButoonTitle)
     }
     
     ///Sets a new icon for the alert
