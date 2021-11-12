@@ -62,8 +62,9 @@ Also having this as it's own library allows for code to be updated separately an
 
  - ITzTravelInTime (Pietro Caruso): piecaruso97@gmail.com
 
-# Copyright
+# Legal info
 
+TINUNotifications: A library to send notifications and alerts more easily within a macOS app.
 Copyright (C) 2021 Pietro Caruso
 
 This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version.
