@@ -1,6 +1,6 @@
 /*
  TINUNotifications: A library to send notifications and alerts more easily within a macOS app.
- Copyright (C) 2021 Pietro Caruso
+ Copyright (C) 2021-2022 Pietro Caruso
 
  This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version.
 
@@ -18,27 +18,31 @@ import TINURecovery
 ///Class that is used to create and send notifications
 open class Notification: Messange{
     
-    private init(id: String, message: String, description: String, imageData: Data? = nil, scheduledTime: Date? = nil, allowsSpam: Bool = false) {
+    private init(id: String, message: String, description: String, imageData: Data? = nil, scheduledTime: Date? = nil, actionButtonTitle: String? = nil, closeButtonTitle: String? = nil, allowsSpam: Bool = false) {
         self.id = id
         self.message = message
         self.description = description
         self.imageData = imageData
         self.scheduledTime = scheduledTime
+        self.actionButtonTitle = actionButtonTitle
+        self.closeButtonTitle = closeButtonTitle
         self.allowsSpam = allowsSpam
     }
     
-    public init(id: String, message: String, description: String, allowsSpam: Bool = false, icon: NSImage? = nil, scheduledTime: Date? = nil) {
+    public init(id: String, message: String, description: String, icon: Image? = nil, scheduledTime: Date? = nil, actionButtonTitle: String? = nil, closeButtonTitle: String? = nil, allowsSpam: Bool = false) {
         self.id = id
         self.message = message
         self.description = description
         self.icon = icon
         self.scheduledTime = scheduledTime
+        self.actionButtonTitle = actionButtonTitle
+        self.closeButtonTitle = closeButtonTitle
         self.allowsSpam = allowsSpam
     }
     
     ///Creates a copy of this notification as a new instance
     public func copy() -> Self {
-        return Notification(id: id, message: message, description: description, imageData: imageData, scheduledTime: scheduledTime, allowsSpam: allowsSpam) as! Self
+        return Notification(id: self.id, message: self.message, description: self.description, imageData: self.imageData, scheduledTime: self.scheduledTime, actionButtonTitle: self.actionButtonTitle, closeButtonTitle: self.closeButtonTitle, allowsSpam: self.allowsSpam) as! Self
     }
     
     public static func == (l: Notification, r: Notification) -> Bool {
@@ -48,6 +52,8 @@ open class Notification: Messange{
         res = res && l.imageData == r.imageData
         res = res && l.scheduledTime == r.scheduledTime
         res = res && l.allowsSpam == r.allowsSpam
+        res = res && l.closeButtonTitle == r.closeButtonTitle
+        res = res && l.actionButtonTitle == r.actionButtonTitle
         
         return res
     }
@@ -73,6 +79,12 @@ open class Notification: Messange{
     
     ///Value used to schedule the notification in a specific point in time
     public var scheduledTime: Date? = nil
+    
+    ///Value that specifies if the notification should have an action button and what it's title should be.
+    public var actionButtonTitle: String? = nil
+    
+    ///Value that specifies if the notification should have a custom title and what that should be.
+    public var closeButtonTitle: String? = nil
     
     ///Value used to determinate if this notification can be spammed or not
     public var allowsSpam: Bool = false
@@ -111,6 +123,16 @@ open class Notification: Messange{
         
         notification.deliveryDate = scheduledTime
         
+        if let title = self.actionButtonTitle{
+            notification.hasActionButton = true
+            notification.actionButtonTitle = title
+        }
+        
+        if let title = self.closeButtonTitle{
+            notification.hasReplyButton = true
+            notification.otherButtonTitle = title
+        }
+            
         notification.soundName = NSUserNotificationDefaultSoundName
         
         return notification.adding(image: self.icon)
@@ -165,6 +187,16 @@ open class Notification: Messange{
         self.scheduledTime = scheduledTime
     }
     
+    ///Adds an action button with the specified text to the notification
+    public func add(actionButtonTitled title: String?){
+        self.actionButtonTitle = title
+    }
+    
+    ///Adds a close button with the specified text to the notification
+    public func add(closeButtonTitled title: String?){
+        self.closeButtonTitle = title
+    }
+    
     ///Returns a copy fo this notification but with the specified image added to it
     public func adding(icon: Image?) -> Notification{
         let cpy = copy()
@@ -176,6 +208,20 @@ open class Notification: Messange{
     public func adding(scheduledTime: Date?) -> Notification{
         let cpy = copy()
         cpy.add(scheduledTime: scheduledTime)
+        return cpy
+    }
+    
+    ///Return a copy of the current notification that adds an action button with the specified text to the notification
+    public func adding(actionButtonTitled title: String?) -> Notification{
+        let cpy = copy()
+        cpy.add(actionButtonTitled: title)
+        return cpy
+    }
+    
+    ///Returns a copy of the current notification that adds a close button with the specified text to the notification
+    public func adding(closeButtonTitled title: String?) -> Notification{
+        let cpy = copy()
+        cpy.add(closeButtonTitled: title)
         return cpy
     }
     

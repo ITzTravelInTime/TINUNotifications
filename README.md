@@ -13,7 +13,7 @@ import AppKit
 import TINUNotifications
 
 func deliverNotification(){
-    guard let notification = Notification(id: "myFancyNotificationID", messange: "Example notification", description: "This is an example notification, you can ignore it and go on with your work!").send() else { return }
+    guard let notification = Notification(id: "myFancyNotificationID", message: "Example notification", description: "This is an example notification, you can ignore it and go on with your work!").send() else { return }
     
     sleep(1)
     
@@ -34,7 +34,7 @@ import AppKit
 import TINUNotifications
 
 func isEverithingOk() -> Bool{
-    return Alert(messange: "Are you ok?", description: "Tell me how are you. Is everything ok?").yesNo().send().yes()
+    return Alert(message: "Are you ok?", description: "Tell me how are you. Is everything ok?").yesNo().send().yes()
 }
 
 print("Is the user ok? \(isEverithingOk() ? "Yes" : "No")")
@@ -65,7 +65,7 @@ Also having this as it's own library allows for code to be updated separately an
 # Legal info
 
 TINUNotifications: A library to send notifications and alerts more easily within a macOS app.
-Copyright (C) 2021 Pietro Caruso
+Copyright (C) 2021-2022 Pietro Caruso
 
 This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) any later version.
 
