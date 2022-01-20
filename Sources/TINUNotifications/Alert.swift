@@ -10,13 +10,12 @@
  */
 
 import Foundation
-import TINURecovery
 
 #if os(macOS)
 import AppKit
 
 ///This objects represents an alert messange displayed to the user
-public struct Alert: Messange{
+public struct Alert: Message{
     
     ///This structure is used to represent the alert's buttons
     public struct Button: Equatable, Codable {
@@ -207,11 +206,6 @@ public struct Alert: Messange{
         return addingButton(title: Alert.localisedOkButoonTitle, keyEquivalent: "\r").addingButton(title: Alert.localisedCancelButoonTitle)
     }
     
-    ///Sets a new icon for the alert
-    public mutating func add(icon: NSImage?){
-        self.icon = icon
-    }
-    
     ///Adds a new button the alert
     public mutating func add(button: Button){
         buttons.append(button)
@@ -225,7 +219,7 @@ public struct Alert: Messange{
     ///Creates a new instance of `Alert` equal to the current one but using the specified icon
     public func adding(icon: NSImage?) -> Alert{
         var mycopy = copy()
-        mycopy.add(icon: icon)
+        mycopy.icon = icon
         return mycopy
     }
     

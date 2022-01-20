@@ -13,12 +13,12 @@ import Foundation
 
 #if os(macOS)
 import AppKit
-import TINURecovery
+//import TINURecovery
 
 ///Class that is used to create and send notifications
-open class Notification: Messange{
+open class Notification: Message{
     
-    private init(id: String, message: String, description: String, imageData: Data? = nil, scheduledTime: Date? = nil, actionButtonTitle: String? = nil, closeButtonTitle: String? = nil, allowsSpam: Bool = false) {
+    private init(id: String, message: String, description: String, imageData: Data?, scheduledTime: Date?, actionButtonTitle: String?, closeButtonTitle: String?, allowsSpam: Bool, actions: [Action]?, displayActionSelector: Bool?, replyPlaceholder: String?, userTag: [String: String]?) {
         self.id = id
         self.message = message
         self.description = description
@@ -27,9 +27,13 @@ open class Notification: Messange{
         self.actionButtonTitle = actionButtonTitle
         self.closeButtonTitle = closeButtonTitle
         self.allowsSpam = allowsSpam
+        self.actions = actions
+        self.displayActionSelector = displayActionSelector
+        self.replyPlaceholder = replyPlaceholder
+        self.userTag = userTag
     }
     
-    public init(id: String, message: String, description: String, icon: Image? = nil, scheduledTime: Date? = nil, actionButtonTitle: String? = nil, closeButtonTitle: String? = nil, allowsSpam: Bool = false) {
+    public init(id: String, message: String, description: String, icon: Image? = nil, scheduledTime: Date? = nil, actionButtonTitle: String? = nil, closeButtonTitle: String? = nil, allowsSpam: Bool = false, actions: [Action]? = nil, displayActionSelector: Bool? = nil, replyPlaceholder: String? = nil, userTag: [String: String]? = nil) {
         self.id = id
         self.message = message
         self.description = description
@@ -38,11 +42,15 @@ open class Notification: Messange{
         self.actionButtonTitle = actionButtonTitle
         self.closeButtonTitle = closeButtonTitle
         self.allowsSpam = allowsSpam
+        self.actions = actions
+        self.displayActionSelector = displayActionSelector
+        self.replyPlaceholder = replyPlaceholder
+        self.userTag = userTag
     }
     
     ///Creates a copy of this notification as a new instance
     public func copy() -> Self {
-        return Notification(id: self.id, message: self.message, description: self.description, imageData: self.imageData, scheduledTime: self.scheduledTime, actionButtonTitle: self.actionButtonTitle, closeButtonTitle: self.closeButtonTitle, allowsSpam: self.allowsSpam) as! Self
+        return Notification(id: self.id, message: self.message, description: self.description, imageData: self.imageData, scheduledTime: self.scheduledTime, actionButtonTitle: self.actionButtonTitle, closeButtonTitle: self.closeButtonTitle, allowsSpam: self.allowsSpam, actions: self.actions, displayActionSelector: self.displayActionSelector, replyPlaceholder: self.replyPlaceholder, userTag: self.userTag) as! Self
     }
     
     public static func == (l: Notification, r: Notification) -> Bool {
@@ -54,6 +62,9 @@ open class Notification: Messange{
         res = res && l.allowsSpam == r.allowsSpam
         res = res && l.closeButtonTitle == r.closeButtonTitle
         res = res && l.actionButtonTitle == r.actionButtonTitle
+        res = res && l.actions == r.actions
+        res = res && l.displayActionSelector == r.displayActionSelector
+        res = res && l.replyPlaceholder == r.replyPlaceholder
         
         return res
     }
@@ -66,6 +77,12 @@ open class Notification: Messange{
     private static var prevIDs: [String: (Date, String)] = [:]
     ///Timer that undends notifications after 2 minutes
     private static var timer: Timer!
+    
+    ///The type used to store notification actions, consisting of action ID and disaply name
+    public struct Action: Codable, Equatable{
+        let id: String
+        let displayName: String
+    }
     
     ///The id of this notification
     public var id: String
@@ -88,6 +105,26 @@ open class Notification: Messange{
     
     ///Value used to determinate if this notification can be spammed or not
     public var allowsSpam: Bool = false
+    
+    ///The actions are used for additional notifications actions
+    ///
+    ///Will work only in OS X Yosemite 10.10 and later
+    public var actions: [Action]? = nil
+    
+    ///Sets if the shown notification should display a selector to chose an action
+    ///
+    ///     The nil case is considered the same as false.
+    ///
+    ///     Warning: Makes use of private OS API, might not be safe turning this on for production apps.
+    public var displayActionSelector: Bool? = nil
+    
+    ///Sets if the notification should have a reply button and what the reply text field placeholder text shuold be.
+    ///
+    ///     NOTE: An empty placeholder text will just display the Reply button.
+    public var replyPlaceholder: String? = nil
+    
+    ///Array used to store custom information to pass to the notification hanlder
+    public var userTag: [String: String]? = nil
     
     ///The icon used for the notification
     public var icon: Image?{
@@ -123,14 +160,39 @@ open class Notification: Messange{
         
         notification.deliveryDate = scheduledTime
         
-        if let title = self.actionButtonTitle{
-            notification.hasActionButton = true
-            notification.actionButtonTitle = title
+        if let placeholder = self.replyPlaceholder{
+            notification.hasReplyButton = true
+            
+            notification.responsePlaceholder = (placeholder.isEmpty ? nil : placeholder)
         }
         
-        if let title = self.closeButtonTitle{
-            notification.hasReplyButton = true
-            notification.otherButtonTitle = title
+        if self.actionButtonTitle != nil || self.closeButtonTitle != nil{
+            notification.hasActionButton = true
+            
+            if let title = self.actionButtonTitle{
+                notification.actionButtonTitle = title
+            }
+            
+            if let title = self.closeButtonTitle{
+                notification.otherButtonTitle = title
+            }
+        }
+        
+        if #available(macOS 10.10, *){
+            if let actions = self.actions{
+                for action in actions{
+                    if notification.additionalActions == nil{
+                        notification.additionalActions = []
+                    }
+                
+                    notification.additionalActions?.append(.init(identifier: action.id, title: action.displayName))
+                }
+            }
+        }
+        
+        if (self.displayActionSelector ?? false) && actions != nil{
+            // WARNING, private API, not safe for production
+            notification.setValue(true, forKey: "_alwaysShowAlternateActionMenu")
         }
             
         notification.soundName = NSUserNotificationDefaultSoundName
@@ -140,10 +202,10 @@ open class Notification: Messange{
     
     ///Tryes to deliver a notification to the user, if it can't bedelivered `nil` is returned, otherwise it returns the notification as a `NSUserNotification` object.
     public func send() -> NSUserNotification?{
-        if Recovery.status{
+        /*if Recovery.status{
             Swift.print("Recovery mode is active, notification sending is disabled")
             return nil
-        }
+        }*/
         
         let noti = create()
         
@@ -172,66 +234,86 @@ open class Notification: Messange{
         }
     }
     
-    ///Allows the current notification to be spammed when sent multiple times
-    public func allowSpam(){
-        self.allowsSpam = true
-    }
-    
-    ///Adds an icon to this notification
-    public func add(icon: Image?){
-        self.icon = icon
-    }
-    
-    ///Adds a scheduled time at which the notificastion should be delivered once sent
-    public func add(scheduledTime: Date?){
-        self.scheduledTime = scheduledTime
-    }
-    
-    ///Adds an action button with the specified text to the notification
-    public func add(actionButtonTitled title: String?){
-        self.actionButtonTitle = title
-    }
-    
-    ///Adds a close button with the specified text to the notification
-    public func add(closeButtonTitled title: String?){
-        self.closeButtonTitle = title
-    }
-    
     ///Returns a copy fo this notification but with the specified image added to it
-    public func adding(icon: Image?) -> Notification{
+    public func adding(icon: Image?) -> Self{
         let cpy = copy()
-        cpy.add(icon: icon)
+        cpy.icon = icon
         return cpy
     }
     
     ///Returns a copy the current notification but with a scheduleds time of delivery added
-    public func adding(scheduledTime: Date?) -> Notification{
+    public func adding(scheduledTime: Date?) -> Self{
         let cpy = copy()
-        cpy.add(scheduledTime: scheduledTime)
+        cpy.scheduledTime = scheduledTime
         return cpy
     }
     
     ///Return a copy of the current notification that adds an action button with the specified text to the notification
-    public func adding(actionButtonTitled title: String?) -> Notification{
+    public func adding(actionButtonTitled title: String?) -> Self{
         let cpy = copy()
-        cpy.add(actionButtonTitled: title)
+        cpy.actionButtonTitle = title
         return cpy
     }
     
     ///Returns a copy of the current notification that adds a close button with the specified text to the notification
-    public func adding(closeButtonTitled title: String?) -> Notification{
+    public func adding(closeButtonTitled title: String?) -> Self{
         let cpy = copy()
-        cpy.add(closeButtonTitled: title)
+        cpy.closeButtonTitle = title
+        return cpy
+    }
+    
+    ///Returns a copy of the current notification that adds a close button with the specified text to the notification
+    ///
+    ///     NOTE: An empty placeholder text will just display the Reply button.
+    public func adding(replyButtonAndPlaceholderText text: String) -> Self{
+        let cpy = copy()
+        cpy.replyPlaceholder = text
+        return cpy
+    }
+    
+    public func adding(userTag: [String: String]) -> Self{
+        let cpy = copy()
+        cpy.userTag = userTag
         return cpy
     }
     
     ///Returns a copy of the current notification that allows spamming
-    public func allowingSpam() -> Notification{
+    public func allowingSpam() -> Self{
         let cpy = copy()
-        cpy.allowSpam()
+        cpy.allowsSpam = true
         return cpy
     }
     
+}
+
+@available(macOS 10.10, *) public extension Notification{
+    ///Adds a cutom extra action to the notification
+    func add(action: Action){
+        if self.actions == nil{
+            self.actions = []
+        }
+        
+        self.actions?.append(action)
+    }
+    
+    ///Returns a copy fo this notification but with a custom extra action added to it
+    func adding(action: Action) -> Notification{
+        let cpy = copy()
+        cpy.add(action: action)
+        return cpy
+    }
+    
+    ///Adds a cutom extra action to the notification
+    func addAction(id: String, displayName: String){
+        self.add(action: .init(id: id, displayName: displayName))
+    }
+    
+    ///Returns a copy fo this notification but with a custom extra action added to it
+    func addingAction(id: String, displayName: String) -> Notification{
+        let cpy = copy()
+        cpy.add(action: .init(id: id, displayName: displayName))
+        return cpy
+    }
 }
 
 #endif

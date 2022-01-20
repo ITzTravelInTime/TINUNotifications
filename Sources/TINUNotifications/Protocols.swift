@@ -9,10 +9,14 @@
  You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 import Foundation
-import TINURecovery
+
+///Standard protocol for objects that creates copies if themselfs.
+public protocol Copying{
+    func copy() -> Self
+}
 
 ///Basic interface for notifications and alerts used by this library, it could be also used for other objects that presents similar behaviour
-public protocol Messange: Codable, Equatable, Copying {
+public protocol Message: Codable, Equatable, Copying {
     associatedtype T
     associatedtype G
     var message: String { get }
@@ -23,7 +27,7 @@ public protocol Messange: Codable, Equatable, Copying {
     //func justSend()
 }
 
-public extension Messange{
+public extension Message{
     ///Default implementation for `justSend()`, this will just send the `Messange` object without any returns
     func justSend() {
         let _ = send()
