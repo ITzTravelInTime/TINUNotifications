@@ -1,10 +1,11 @@
 # TINUNotifications
-Library with the Basic, Notifications and Alerts, delivery and management system, used by TINU (https://github.com/ITzTravelInTime/TINU)
+A library for easy, SwiftUI-like, usage of notifications and alerts on macOS.
 
 # Features and usage
 
 Notification: 
 - Is codable so it can be serialised and de-serialised allowing you to store notifications in local files or create them directly from a web server.
+- Can be used in a SwiftUI-like way or a more traditional way.
 - Creates simple notitifications by using a `Notification` object and then sends it to the user, example usage:
 
 ```swift
@@ -26,6 +27,7 @@ deliverNotification()
 
 Alert:
 - Is codable so it can be serialised and de-serialised allowing you to store alerts in local files or create them directly from a web server.
+- Can be used in a SwiftUI-like way or a more traditional way.
 - Creates a simple alert to be displayed to the user. Example usage:
 
 ```swift
@@ -44,7 +46,7 @@ print("Is the user ok? \(isEverithingOk() ? "Yes" : "No")")
 
 # Who should use this Library?
 
-This library should be used by swift apps/programs for macOS that needs to deliver some simple notifications and alerts to the user.
+This library should be used by swift apps/programs for macOS that needs to deal with notifications and alerts, by either having to serialize and deserialize those, or just needing a simple way to handling them.
 
 This code is intended for macOS only since it requires the system library 'AppKit'.
 
