@@ -190,6 +190,8 @@ open class Notification: Message{
             }
         }
         
+        notification.userInfo = userTag
+        
         if (self.displayActionSelector ?? false) && actions != nil{
             // WARNING, private API, not safe for production
             notification.setValue(true, forKey: "_alwaysShowAlternateActionMenu")
