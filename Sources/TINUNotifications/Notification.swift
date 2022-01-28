@@ -18,7 +18,7 @@ import AppKit
 ///Class that is used to create and send notifications
 open class Notification: Message{
     
-    private init(id: String, message: String, description: String, imageData: Data?, scheduledTime: Date?, actionButtonTitle: String?, closeButtonTitle: String?, allowsSpam: Bool, actions: [Action]?, displayActionSelector: Bool?, replyPlaceholder: String?, userTag: [String: String]?) {
+    private init(id: String, message: String, description: String, imageData: Data?, scheduledTime: Date?, actionButtonTitle: String?, closeButtonTitle: String?, allowsSpam: Bool, usesRandomizedID: Bool?, actions: [Action]?, displayActionSelector: Bool?, replyPlaceholder: String?, userTag: [String: String]?) {
         self.id = id
         self.message = message
         self.description = description
@@ -27,13 +27,14 @@ open class Notification: Message{
         self.actionButtonTitle = actionButtonTitle
         self.closeButtonTitle = closeButtonTitle
         self.allowsSpam = allowsSpam
+        self.usesRandomizedID = usesRandomizedID
         self.actions = actions
         self.displayActionSelector = displayActionSelector
         self.replyPlaceholder = replyPlaceholder
         self.userTag = userTag
     }
     
-    public init(id: String, message: String, description: String, icon: Image? = nil, scheduledTime: Date? = nil, actionButtonTitle: String? = nil, closeButtonTitle: String? = nil, allowsSpam: Bool = false, actions: [Action]? = nil, displayActionSelector: Bool? = nil, replyPlaceholder: String? = nil, userTag: [String: String]? = nil) {
+    public init(id: String, message: String, description: String, icon: Image? = nil, scheduledTime: Date? = nil, actionButtonTitle: String? = nil, closeButtonTitle: String? = nil, allowsSpam: Bool = false, usesRandomizedID: Bool? = nil, actions: [Action]? = nil, displayActionSelector: Bool? = nil, replyPlaceholder: String? = nil, userTag: [String: String]? = nil) {
         self.id = id
         self.message = message
         self.description = description
@@ -42,6 +43,7 @@ open class Notification: Message{
         self.actionButtonTitle = actionButtonTitle
         self.closeButtonTitle = closeButtonTitle
         self.allowsSpam = allowsSpam
+        self.usesRandomizedID = usesRandomizedID
         self.actions = actions
         self.displayActionSelector = displayActionSelector
         self.replyPlaceholder = replyPlaceholder
@@ -50,7 +52,7 @@ open class Notification: Message{
     
     ///Creates a copy of this notification as a new instance
     public func copy() -> Self {
-        return Notification(id: self.id, message: self.message, description: self.description, imageData: self.imageData, scheduledTime: self.scheduledTime, actionButtonTitle: self.actionButtonTitle, closeButtonTitle: self.closeButtonTitle, allowsSpam: self.allowsSpam, actions: self.actions, displayActionSelector: self.displayActionSelector, replyPlaceholder: self.replyPlaceholder, userTag: self.userTag) as! Self
+        return Notification(id: self.id, message: self.message, description: self.description, imageData: self.imageData, scheduledTime: self.scheduledTime, actionButtonTitle: self.actionButtonTitle, closeButtonTitle: self.closeButtonTitle, allowsSpam: self.allowsSpam, usesRandomizedID: self.usesRandomizedID, actions: self.actions, displayActionSelector: self.displayActionSelector, replyPlaceholder: self.replyPlaceholder, userTag: self.userTag) as! Self
     }
     
     public static func == (l: Notification, r: Notification) -> Bool {
@@ -65,6 +67,7 @@ open class Notification: Message{
         res = res && l.actions == r.actions
         res = res && l.displayActionSelector == r.displayActionSelector
         res = res && l.replyPlaceholder == r.replyPlaceholder
+        res = res && l.usesRandomizedID == r.usesRandomizedID
         
         return res
     }
@@ -126,6 +129,9 @@ open class Notification: Message{
     ///Array used to store custom information to pass to the notification hanlder
     public var userTag: [String: String]? = nil
     
+    ///This specifies that the notification that is being created should have a randomized suffix added to it's id
+    public var usesRandomizedID: Bool? = nil
+    
     ///The icon used for the notification
     public var icon: Image?{
         get{
@@ -142,7 +148,7 @@ open class Notification: Message{
         let notification = NSUserNotification()
         
         if !Notification.prevIDs.keys.contains(id){
-            notification.identifier = Notification.idPrefix + id + (allowsSpam ? String(Notification.counter) : "")
+            notification.identifier = Notification.idPrefix + id + ((usesRandomizedID ?? false) ? "\(arc4random())" : "") + (allowsSpam ? String(Notification.counter) : "")
             
             Notification.prevIDs[id] = (Date(), notification.identifier!)
             
@@ -280,9 +286,16 @@ open class Notification: Message{
     }
     
     ///Returns a copy of the current notification that allows spamming
-    public func allowingSpam() -> Self{
+    public func allowingSpam(_ value: Bool = true) -> Self{
         let cpy = copy()
-        cpy.allowsSpam = true
+        cpy.allowsSpam = value
+        return cpy
+    }
+    
+    ///Returns a copy of the current notification witht id randomization setted
+    public func usingRandomID(_ value: Bool = true) -> Self{
+        let cpy = copy()
+        cpy.usesRandomizedID = value
         return cpy
     }
     
@@ -299,7 +312,7 @@ open class Notification: Message{
     }
     
     ///Returns a copy fo this notification but with a custom extra action added to it
-    func adding(action: Action) -> Notification{
+    func adding(action: Action) -> Self{
         let cpy = copy()
         cpy.add(action: action)
         return cpy
@@ -311,9 +324,20 @@ open class Notification: Message{
     }
     
     ///Returns a copy fo this notification but with a custom extra action added to it
-    func addingAction(id: String, displayName: String) -> Notification{
+    func addingAction(id: String, displayName: String) -> Self{
         let cpy = copy()
         cpy.add(action: .init(id: id, displayName: displayName))
+        return cpy
+    }
+    
+    ///Sets if the shown notification should display a selector to chose an action
+    ///
+    ///     The nil case is considered the same as false.
+    ///
+    ///     Warning: Makes use of private OS API, might not be safe turning this on for production apps.
+    func actionSelector(enabled value: Bool) -> Self{
+        let cpy = copy()
+        cpy.displayActionSelector = value
         return cpy
     }
 }
