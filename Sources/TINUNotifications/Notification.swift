@@ -18,7 +18,7 @@ import AppKit
 ///Class that is used to create and send notifications
 open class Notification: Message{
     
-    private init(id: String, message: String, description: String, imageData: Data?, scheduledTime: Date?, actionButtonTitle: String?, closeButtonTitle: String?, allowsSpam: Bool, usesRandomizedID: Bool?, actions: [Action]?, displayActionSelector: Bool?, replyPlaceholder: String?, userTag: [String: String]?) {
+    private init(id: String, message: String, description: String, imageData: Data?, scheduledTime: Date?, actionButtonTitle: String?, closeButtonTitle: String?, allowsSpam: Bool?, usesRandomizedID: Bool?, actions: [Action]?, displayActionSelector: Bool?, replyPlaceholder: String?, userTag: [String: String]?) {
         self.id = id
         self.message = message
         self.description = description
@@ -34,7 +34,7 @@ open class Notification: Message{
         self.userTag = userTag
     }
     
-    public init(id: String, message: String, description: String, icon: Image? = nil, scheduledTime: Date? = nil, actionButtonTitle: String? = nil, closeButtonTitle: String? = nil, allowsSpam: Bool = false, usesRandomizedID: Bool? = nil, actions: [Action]? = nil, displayActionSelector: Bool? = nil, replyPlaceholder: String? = nil, userTag: [String: String]? = nil) {
+    public init(id: String, message: String, description: String, icon: Image? = nil, scheduledTime: Date? = nil, actionButtonTitle: String? = nil, closeButtonTitle: String? = nil, allowsSpam: Bool? = false, usesRandomizedID: Bool? = nil, actions: [Action]? = nil, displayActionSelector: Bool? = nil, replyPlaceholder: String? = nil, userTag: [String: String]? = nil) {
         self.id = id
         self.message = message
         self.description = description
@@ -107,7 +107,7 @@ open class Notification: Message{
     public var closeButtonTitle: String? = nil
     
     ///Value used to determinate if this notification can be spammed or not
-    public var allowsSpam: Bool = false
+    public var allowsSpam: Bool? = false
     
     ///The actions are used for additional notifications actions
     ///
@@ -148,7 +148,7 @@ open class Notification: Message{
         let notification = NSUserNotification()
         
         if !Notification.prevIDs.keys.contains(id){
-            notification.identifier = Notification.idPrefix + id + ((usesRandomizedID ?? false) ? "\(arc4random())" : "") + (allowsSpam ? String(Notification.counter) : "")
+            notification.identifier = Notification.idPrefix + id + ((usesRandomizedID ?? false) ? "\(arc4random())" : "") + ((allowsSpam ?? false) ? String(Notification.counter) : "")
             
             Notification.prevIDs[id] = (Date(), notification.identifier!)
             
