@@ -9,11 +9,7 @@
  You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 import Foundation
-
-///Standard protocol for objects that creates copies if themselfs.
-public protocol Copying{
-    func copy() -> Self
-}
+import SwiftPackagesBase
 
 ///Basic interface for notifications and alerts used by this library, it could be also used for other objects that presents similar behaviour
 public protocol Message: Codable, Equatable, Copying {
